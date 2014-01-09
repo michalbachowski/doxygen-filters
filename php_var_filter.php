@@ -13,8 +13,8 @@ $source = file_get_contents($argv[1]);
 // (public|protected|private|var) $paramName = 'value';
 // 
 // recongizable as valid variable documentation
-$regexp = '#\@var\s+([^\s]+)([^/]+)/\s+(var|public|protected|private)\s+(\$[^\s;=]+)#';
-$replac = '${2} */ ${3} ${1} ${4}';
+$regexp = '#\@var\s+([^\s]+)(.+?)\*/\s+(var|public|protected|private)\s+(\$[^\s;=]+)#mis';
+$replac = '${2}*/ ${3} ${1} ${4}';
 $source = preg_replace($regexp, $replac, $source);
 
 
@@ -39,6 +39,7 @@ $source = preg_replace($regexp, $replac, $source);
 // ReturnType function name((bool|int|float|double|string) $pParamName) {
 
 function callback($matches) {
+    #file_put_contents('/tmp/doxy', var_export($matches, true) . "\n", FILE_APPEND);
 
     $lines = explode("\n", $matches[2]);
     $return = '';
@@ -71,12 +72,12 @@ function callback($matches) {
     return $ret;
 }
 $regexp = '#(/\*\*' .
-    '([^/]+?)' .
+    '(.+?)' .
     '\*/\s+' .
     '(?:public|protected|private)\s+function\s+(?:[^\(\s]+?)\()(?:(?:[^,]*?\s*,?\s*)*)(\)\s+{)#mis';
 #$regexp = '#\@param\s+(bool|int|float|double|string)\s+(\$[^\s]+)\s+([^/]+)/\s+(public|protected|private)?\s+function\s+([^\(\s]+)\s*([^)]*)(\(|,)\s*\2([^)]*)\)(\s+){#s';
 $replac = '@param ${1} ${2} ${3}/ ${4} function ${5}${6}${7}${1} ${2}${8})${9}{ '; //${6}${1} ${2}${7})${8}{';
 $source = preg_replace_callback($regexp, 'callback', $source);
 
-
+#file_put_contents('/tmp/doxy', $source);
 echo $source;
