@@ -2,7 +2,6 @@
 # Source:
 # http://stackoverflow.com/questions/4325224/doxygen-how-to-describe-class-member-variables-in-php
 #
-
 $source = file_get_contents($argv[1]);
 
 // Makes the following:
@@ -17,7 +16,6 @@ $regexp = '#\@var\s+([^\s]+)(.+?)\*/\s+(var|public|protected|private)\s+(\$[^\s;
 $replac = '${2}*/ ${3} ${1} ${4}';
 $source = preg_replace($regexp, $replac, $source);
 
-
 // Change the following:
 // /** @param VarType[] $pParamName Description **/
 // function name(array $pParamName) {
@@ -29,7 +27,6 @@ $regexp = '#\@param\s+([^\s]+)\[\]\s+(\$[^\s]+)\s+([^/]+)/\s+(public|protected|p
 $replac = '@param array ${2} ${3}/ ${4} function ${5} (${6} ${1}[] ${2}${7})${8}{';
 $source = preg_replace($regexp, $replac, $source);
 
-
 // Change the following:
 // /** @param (bool|int|float|double|string) $pParamName Description **/
 // function name($pParamName) {
@@ -39,8 +36,7 @@ $source = preg_replace($regexp, $replac, $source);
 // ReturnType function name((bool|int|float|double|string) $pParamName) {
 
 function callback($matches) {
-    #file_put_contents('/tmp/doxy', var_export($matches, true) . "\n", FILE_APPEND);
-
+    #var_dump($matches);
     $lines = explode("\n", $matches[2]);
     $return = '';
     $params = array();
@@ -71,13 +67,15 @@ function callback($matches) {
     }
     return $ret;
 }
-$regexp = '#(/\*\*' .
-    '(.+?)' .
-    '\*/\s+' .
-    '(?:public|protected|private)\s+function\s+(?:[^\(\s]+?)\()(?:(?:[^,]*?\s*,?\s*)*)(\)\s+{)#mis';
-#$regexp = '#\@param\s+(bool|int|float|double|string)\s+(\$[^\s]+)\s+([^/]+)/\s+(public|protected|private)?\s+function\s+([^\(\s]+)\s*([^)]*)(\(|,)\s*\2([^)]*)\)(\s+){#s';
-$replac = '@param ${1} ${2} ${3}/ ${4} function ${5}${6}${7}${1} ${2}${8})${9}{ '; //${6}${1} ${2}${7})${8}{';
+$regexp = '#'
+    . '('                               # start first group (comment + function name + opening bracket)
+    .     '/\*\*(.+?)\*/\s+'            # match comment
+    .     '(?:public|protected|private)'# match visibility qualifier
+    .     '\s+function\s+[^\s]+\s*\('   # match "function" + method name + "("
+    . ')'                               # end first group 
+    . '(?:[^\)]*?)?'                    # match function attributes
+    . '(\)\s+{?\s*$)'                   # match closing bracket ")" + opening "{"
+    . '#mis'
+;
 $source = preg_replace_callback($regexp, 'callback', $source);
-
-#file_put_contents('/tmp/doxy', $source);
 echo $source;
